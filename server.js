@@ -198,13 +198,25 @@ const requestHandler = async (req, res) => {
   const delayMs = parseInt(req.headers['x-delay-ms'] || '0', 10);
 
   const executeResponse = () => {
-      // Parse URL and Query Parameters (supporting Vercel rewrites)
+      // Parse URL and Query Parameters (supporting local execution and Vercel rewrites)
       const rawTarget = req.headers['x-forwarded-uri'] || req.headers['x-matched-path'] || req.url;
       const queryPart = (!rawTarget.includes('?') && req.url.includes('?')) ? req.url.slice(req.url.indexOf('?')) : '';
       const effectiveUrl = rawTarget.includes('?') ? rawTarget : (rawTarget + queryPart);
       const parsedUrl = new URL(effectiveUrl, `http://${req.headers.host || 'localhost'}`);
-      const pathname = parsedUrl.pathname;
+      
+      let pathname = parsedUrl.pathname;
       const searchParams = parsedUrl.searchParams;
+
+      // Extract __path injected by Vercel rewrite if present
+      if (searchParams.has('__path')) {
+        pathname = searchParams.get('__path') || '/';
+        searchParams.delete('__path');
+      }
+      if (!pathname.startsWith('/')) {
+        pathname = '/' + pathname;
+      }
+      // Normalize double slashes at start e.g. //health -> /health
+      pathname = pathname.replace(/^\/+/, '/');
 
       console.log(`\x1b[36m[${timestamp}]\x1b[0m \x1b[33m${req.method}\x1b[0m ${pathname}`);
       if (req.headers.authorization) {
