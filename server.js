@@ -158,7 +158,30 @@ const MSISDN_SCENARIOS = {
   }
 };
 
-const requestHandler = (req, res) => {
+const parseBody = (req) => {
+  return new Promise((resolve) => {
+    if (req.body !== undefined && req.body !== null) {
+      if (typeof req.body === 'string') return resolve(req.body);
+      if (Buffer.isBuffer(req.body)) return resolve(req.body.toString('utf8'));
+      if (typeof req.body === 'object') return resolve(JSON.stringify(req.body));
+    }
+    if (req.readableEnded || req.complete) {
+      return resolve('');
+    }
+    let bodyData = '';
+    req.on('data', chunk => {
+      bodyData += chunk.toString();
+    });
+    req.on('end', () => {
+      resolve(bodyData);
+    });
+    req.on('error', () => {
+      resolve('');
+    });
+  });
+};
+
+const requestHandler = async (req, res) => {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
@@ -170,16 +193,11 @@ const requestHandler = (req, res) => {
     return;
   }
 
-  let bodyData = '';
-  req.on('data', chunk => {
-    bodyData += chunk.toString();
-  });
+  const bodyData = await parseBody(req);
+  const timestamp = new Date().toISOString();
+  const delayMs = parseInt(req.headers['x-delay-ms'] || '0', 10);
 
-  req.on('end', () => {
-    const timestamp = new Date().toISOString();
-    const delayMs = parseInt(req.headers['x-delay-ms'] || '0', 10);
-
-    const executeResponse = () => {
+  const executeResponse = () => {
       // Parse URL and Query Parameters
       const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
       const pathname = parsedUrl.pathname;
@@ -510,12 +528,14 @@ const requestHandler = (req, res) => {
     } else {
       executeResponse();
     }
-  });
 };
 
-const server = http.createServer(requestHandler);
+// Export requestHandler for Vercel Serverless Function & testing
+module.exports = requestHandler;
 
-if (process.env.NODE_ENV !== 'test') {
+// Only start the standalone HTTP listener when executed directly (node server.js)
+if (require.main === module) {
+  const server = http.createServer(requestHandler);
   server.listen(PORT, () => {
     console.log(`================================================================`);
     console.log(`🚀 Standalone Enterprise WCT Gateway Mock Server on Port ${PORT}`);
@@ -528,4 +548,3 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-module.exports = server;
