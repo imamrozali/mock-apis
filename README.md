@@ -61,8 +61,8 @@ wct.access-token.basic.auth-code=Yk1tM3hQcWVPSk1EYTZubkdPaXh1UE9yYks4YTpXWGRoSlk
 wct.token-expiry-time=60000
 
 # Atau jika menggunakan mock di Vercel:
-# wct.casemanagement.create.trouble.ticket.url=https://mock-api-tests.vercel.app/rp-server/troubleTicket/v2/troubleTicket
-# wct.access-token.url=https://mock-api-tests.vercel.app/token
+# wct.casemanagement.create.trouble.ticket.url=https://mock-apis-catur-dayung.vercel.app/rp-server/troubleTicket/v2/troubleTicket
+# wct.access-token.url=https://mock-apis-catur-dayung.vercel.app/token
 ```
 
 ---
