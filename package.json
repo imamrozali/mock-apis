@@ -1,0 +1,15 @@
+{
+  "name": "wct-express-mock",
+  "version": "1.0.0",
+  "description": "Standalone Express Mock Server for WCT Gateway (OAuth 2.0 & TroubleTicket API INF-XLI153 / TM Forum 621)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
