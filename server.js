@@ -198,8 +198,11 @@ const requestHandler = async (req, res) => {
   const delayMs = parseInt(req.headers['x-delay-ms'] || '0', 10);
 
   const executeResponse = () => {
-      // Parse URL and Query Parameters
-      const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+      // Parse URL and Query Parameters (supporting Vercel rewrites)
+      const rawTarget = req.headers['x-forwarded-uri'] || req.headers['x-matched-path'] || req.url;
+      const queryPart = (!rawTarget.includes('?') && req.url.includes('?')) ? req.url.slice(req.url.indexOf('?')) : '';
+      const effectiveUrl = rawTarget.includes('?') ? rawTarget : (rawTarget + queryPart);
+      const parsedUrl = new URL(effectiveUrl, `http://${req.headers.host || 'localhost'}`);
       const pathname = parsedUrl.pathname;
       const searchParams = parsedUrl.searchParams;
 
